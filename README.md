@@ -1,8 +1,7 @@
 # SeaFood
 
-Welcome to your new gem! In this directory, you'll find the files you need to be able to package up your Ruby library into a gem. Put your Ruby code in the file `lib/sea_food`. To experiment with that code, run `bin/console` for an interactive prompt.
-
-TODO: Delete this and the text above, and describe your gem
+The sea_food gem is a Ruby library designed to enhance the development of service and form objects in Ruby applications. Representing SErvice Objects And Form Object Design patterns, this gem facilitates the separation of business logic and data validations from ActiveRecord models. 
+P.S. Jian Yang would be proud; Erlich Bachman, not so much.
 
 ## Installation
 
