@@ -22,6 +22,10 @@ Lint/AmbiguousBlockAssociation:
 Lint/RescueException:
   Exclude:
 
+Lint/UnreachableCode:
+  Exclude:
+    - 'spec/sea_food/service/service_spec.rb'
+
 Lint/UselessAssignment:
   Exclude:
     - 'lib/sea_food/service.rb'
@@ -88,6 +92,14 @@ Style/ModuleFunction:
 Style/RescueModifier:
   Exclude:
     - spec/**/*
+
+Style/MissingRespondToMissing:
+  Exclude:
+    - 'lib/sea_food/service.rb'
+
+Style/MethodMissingSuper:
+  Exclude:
+    - 'lib/sea_food/service.rb'
 
 Naming/PredicateName:
   Enabled: false

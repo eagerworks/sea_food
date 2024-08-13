@@ -18,7 +18,7 @@ module SeaFood
 
     attr_accessor :model
 
-    def validate_model(_options)
+    def validate_model
       promote_errors(model) if model.invalid?
     end
 

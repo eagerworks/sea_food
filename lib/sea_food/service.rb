@@ -7,6 +7,11 @@ module SeaFood
     # Initializes the service.
     # @param params [Hash] The parameters to be passed to the service.
     def initialize(params = {})
+      if SeaFood.configuration.enforce_interface
+        raise NotImplementedError,
+              'Subclasses must implement the initialize method ' \
+              'because `enforce_interface` is set to true'
+      end
       @params = params
       @result = ServiceResult.new
     end
@@ -18,7 +23,7 @@ module SeaFood
       def call(params = {})
         service = new(params)
         service.call
-        service.result
+        service.result || ServiceResult.new
       rescue ServiceError => e
         service.result
       end
@@ -50,15 +55,35 @@ module SeaFood
       raise ServiceError, @result
     end
 
+    # Validates the service using form objects.
+    # @param [ { key: form [ActiveModel::Model] }] The form objects to validate.
+    def validate_with(key, form)
+      fail({ key => form.errors.messages }) unless form.valid?
+    end
+
+    # Validates the service using form objects.
+    # @param [ { key: form [ActiveModel::Model] }] The form objects to validate.
+    def validate_with!(key, form)
+      fail!({ key => form.errors.messages }) unless form.valid?
+    end
+
+    def validate_pipeline(pipeline)
+      pipeline.each do |key, form|
+        fail_and_merge({ key => form.errors.messages }) unless form.valid?
+      end
+      fail!(@result.errors) if @result.failed?
+    end
+
     class ServiceResult
-      attr_reader :success, :data
+      attr_reader :success, :data, :errors
 
       # Initializes the ServiceResult.
       # @param success [Boolean] Indicates if the service call was successful.
       # @param data [Any] The data returned by the service.
-      def initialize(success: true, data: nil)
+      def initialize(success: true, data: nil, errors: nil)
         @success = success
-        @data = data
+        @data = (data || {}).with_indifferent_access
+        @errors = (errors.to_h || {}).with_indifferent_access
       end
 
       # Checks if the service call was successful.
@@ -67,13 +92,36 @@ module SeaFood
         success
       end
 
+      alias success? succeeded?
+
       # Checks if the service call failed.
       # @return [Boolean] True if failed, false otherwise.
       def failed?
         !success
       end
+
+      alias fail? failed?
+
+      # :rubocop:disable Style/MissingRespondToMissing
+      def method_missing(key)
+        if succeeded?
+          @data[key]
+        else
+          @errors[key]
+        end
+      end
     end
 
     class ServiceError < StandardError; end
+
+    private
+
+    def fail_and_merge(errors)
+      @result = if @result.blank?
+                  ServiceResult.new(success: false, errors: errors)
+                else
+                  ServiceResult.new(success: false, errors: errors.merge!(@result.errors))
+                end
+    end
   end
 end

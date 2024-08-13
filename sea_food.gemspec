@@ -2,6 +2,7 @@ lib = File.expand_path('lib', __dir__)
 $LOAD_PATH.unshift(lib) unless $LOAD_PATH.include?(lib)
 require 'sea_food/version'
 
+# :rubocop:disable
 Gem::Specification.new do |spec|
   spec.name          = 'sea_food'
   spec.version       = SeaFood::VERSION
@@ -36,8 +37,12 @@ Gem::Specification.new do |spec|
   spec.add_dependency 'activemodel', '>= 5.2'
   spec.add_dependency 'activesupport', '>= 5.2'
 
-  spec.add_development_dependency 'bundler', '~> 1.17'
+  spec.add_development_dependency 'activerecord', '>= 5.2'
+  spec.add_development_dependency 'bundler', '~> 2.0'
+  spec.add_development_dependency 'database_cleaner-active_record', '~> 2.2.0'
+  spec.add_development_dependency 'debug'
   spec.add_development_dependency 'rake', '~> 10.0'
   spec.add_development_dependency 'rspec', '~> 3.0'
   spec.add_development_dependency 'rubocop', '~> 0.80.0'
+  spec.add_development_dependency 'sqlite3', '~> 1.5.0'
 end
