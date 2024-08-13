@@ -137,8 +137,8 @@ RSpec.describe 'Service usages' do
   it 'call #fail twice' do
     TestFailService = Class.new(SeaFood::Service) do
       def call
-        raise(email: 'hi@example.com')
-        raise(email: params[:email])
+        fail(email: 'hi@example.com')
+        fail(email: params[:email])
       end
     end
 
@@ -165,7 +165,7 @@ RSpec.describe 'Service usages' do
   it '#fail then #success' do
     TestFailService = Class.new(SeaFood::Service) do
       def call
-        raise(email: 'hi@example.com')
+        fail(email: 'hi@example.com')
         success(email: params[:email])
       end
     end
@@ -188,5 +188,38 @@ RSpec.describe 'Service usages' do
 
     expect(result).to be_fail
     expect(result.email).to eq('hi@example.com')
+  end
+
+  context "when the configuration is set to enforce the interface" do
+    before do
+      SeaFood.configure do |config|
+        config.enforce_interface = true
+      end
+    end
+
+    it 'rasies an error when the #initialize method is not implemented' do
+      TestService = Class.new(SeaFood::Service) do
+        def call
+        end
+      end
+
+      expect { TestService.call }.to raise_error(
+        NotImplementedError
+      ).with_message(
+        'Subclasses must implement the initialize '\
+        'method because `enforce_interface` is set to true'
+      )
+    end
+
+    it ' does not rasies an error when the #initialize method is implemented' do
+      TestService = Class.new(SeaFood::Service) do
+        def initialize; end
+        def call; end
+      end
+
+      expect { TestService.call }.not_to raise_error(
+        NotImplementedError
+      )
+    end
   end
 end
