@@ -21,7 +21,37 @@ Or install it yourself as:
 
 ## Usage
 
-TODO: Write usage instructions here
+### Service usage
+```ruby
+class Invoices::ApproveService < SeaFood::Service
+  def initialize(invoice:, user:)
+    @invoice = invoice
+    @user = user
+  end
+
+  def call
+    fail!("You are not authorized to approve invoices") unless authorized?
+
+    @invoice.update!(status: :approved)
+    success(invoice: @invoice)
+  end
+end
+
+result = Invoices::ApproveService.call(invoice: invoice, user: user)
+result.success?
+#=> true
+result.invoice
+#=> <Invoice(...>
+```
+If you want to enforce the interface and not allow users to use `call`
+without arguments defined in the `initialize` you can add an initializer.
+```ruby
+# initializers/sea_food.rb
+SeaFood.configure do |config|
+  config.enforce_interface = true
+end
+```
+It will raise an `ArgumentError`.
 
 ## Development
 
