@@ -7,11 +7,11 @@ module SeaFood
     end
 
     def save(options = {})
-      model.save(options) if valid?
+      model.save(**options) if valid?
     end
 
     def save!(options = {})
-      model.save!(options) if valid?
+      model.save!(**options) if valid?
     end
 
     private
