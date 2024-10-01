@@ -70,126 +70,6 @@ RSpec.describe 'Service usages' do
   # Test enforcing the interface of the service
   ######
 
-  it '.call - fails on missing arguments' do
-    TestFailOnMissingArgsService = Class.new(SeaFood::Service) do
-      def initialize(email:)
-        @email = email
-      end
-
-      def call
-        success(email: email)
-      end
-    end
-
-    expect { TestFailOnMissingArgsService.call }.to raise_error(
-      ArgumentError
-    ).with_message('missing keyword: :email')
-  end
-
-  it '.call - success with arguments' do
-    TestSuccessWithArgsService = Class.new(SeaFood::Service) do
-      def initialize(email:)
-        @email = email
-      end
-
-      def call
-        success(email: @email)
-      end
-    end
-
-    result = TestSuccessWithArgsService.call(email: 'fede@example.com')
-    expect(result).to be_success
-    expect(result.email).to eq('fede@example.com')
-  end
-
-  it '.call - success default with arguments ' do
-    TestSuccessWithArgsService = Class.new(SeaFood::Service) do
-      def initialize(email:)
-        @email = email
-      end
-
-      def call; end
-    end
-
-    result = TestSuccessWithArgsService.call(email: 'fede@example.com')
-    expect(result).to be_success
-    expect(result.email).to be_nil
-  end
-
-  ######
-  # Test the difference behavior of #success #fail #fail!
-  ######
-
-  it 'call #success twice' do
-    TestSuccessService = Class.new(SeaFood::Service) do
-      def call
-        success(email: 'hi@example.com')
-        success(email: params[:email])
-      end
-    end
-
-    result = TestSuccessService.call(email: 'service@example.com')
-
-    expect(result).to be_success
-    expect(result.email).to eq('service@example.com')
-  end
-
-  it 'call #fail twice' do
-    TestFailService = Class.new(SeaFood::Service) do
-      def call
-        fail(email: 'hi@example.com')
-        fail(email: params[:email])
-      end
-    end
-
-    result = TestFailService.call(email: 'service@example.com')
-
-    expect(result).to be_fail
-    expect(result.email).to eq('service@example.com')
-  end
-
-  it 'call #fail! twice' do
-    TestFailService = Class.new(SeaFood::Service) do
-      def call
-        fail!(email: 'hi@example.com')
-        fail!(email: params[:email])
-      end
-    end
-
-    result = TestFailService.call(email: 'service@example.com')
-
-    expect(result).to be_fail
-    expect(result.email).to eq('hi@example.com')
-  end
-
-  it '#fail then #success' do
-    TestFailService = Class.new(SeaFood::Service) do
-      def call
-        fail(email: 'hi@example.com')
-        success(email: params[:email])
-      end
-    end
-
-    result = TestFailService.call(email: 'service@example.com')
-
-    expect(result).to be_success
-    expect(result.email).to eq('service@example.com')
-  end
-
-  it '#fail! then #success!' do
-    TestFailService = Class.new(SeaFood::Service) do
-      def call
-        fail!(email: 'hi@example.com')
-        success!(email: params[:email])
-      end
-    end
-
-    result = TestFailService.call(email: 'service@example.com')
-
-    expect(result).to be_fail
-    expect(result.email).to eq('hi@example.com')
-  end
-
   context "when the configuration is set to enforce the interface" do
     before do
       SeaFood.configure do |config|
@@ -211,7 +91,7 @@ RSpec.describe 'Service usages' do
       )
     end
 
-    it ' does not rasies an error when the #initialize method is implemented' do
+    it 'does not rasies an error when the #initialize method is implemented' do
       TestService = Class.new(SeaFood::Service) do
         def initialize; end
         def call; end
@@ -220,6 +100,147 @@ RSpec.describe 'Service usages' do
       expect { TestService.call }.not_to raise_error(
         NotImplementedError
       )
+    end
+
+    it '.call - fails on missing arguments' do
+      TestFailOnMissingArgsService = Class.new(SeaFood::Service) do
+        def initialize(email:)
+          @email = email
+        end
+
+        def call
+          success(email: email)
+        end
+      end
+
+      expect { TestFailOnMissingArgsService.call }.to raise_error(
+        ArgumentError
+      ).with_message('missing keyword: :email')
+    end
+
+    it '.call - success with arguments' do
+      TestSuccessWithArgsService = Class.new(SeaFood::Service) do
+        def initialize(email:)
+          @email = email
+        end
+
+        def call
+          success(email: @email)
+        end
+      end
+
+      result = TestSuccessWithArgsService.call(email: 'fede@example.com')
+      expect(result).to be_success
+      expect(result.email).to eq('fede@example.com')
+    end
+
+    it '.call - success default with arguments ' do
+      TestSuccessWithArgsService = Class.new(SeaFood::Service) do
+        def initialize(email:)
+          @email = email
+        end
+
+        def call; end
+      end
+
+      result = TestSuccessWithArgsService.call(email: 'fede@example.com')
+      expect(result).to be_success
+      expect(result.email).to be_nil
+    end
+
+  ######
+  # Test the difference behavior of #success #fail #fail!
+  ######
+
+    it 'call #success twice' do
+      TestSuccessService = Class.new(SeaFood::Service) do
+        def initialize(email:)
+          @email = email
+        end
+
+        def call
+          success(email: 'hi@example.com')
+          success(email: @email)
+        end
+      end
+
+      result = TestSuccessService.call(email: 'service@example.com')
+
+      expect(result).to be_success
+      expect(result.email).to eq('service@example.com')
+    end
+
+    it 'call #fail twice' do
+      TestFailService = Class.new(SeaFood::Service) do
+        def initialize(email:)
+          @email = email
+        end
+
+        def call
+          fail(email: 'hi@example.com')
+          fail(email: @email)
+        end
+      end
+
+      result = TestFailService.call(email: 'service@example.com')
+
+      expect(result).to be_fail
+      expect(result.email).to eq('service@example.com')
+    end
+
+    it 'call #fail! twice' do
+      TestFailService = Class.new(SeaFood::Service) do
+        def initialize(email:)
+          @email = email
+        end
+
+        def call
+          fail!(email: 'hi@example.com')
+          fail!(email: @email)
+        end
+      end
+
+      result = TestFailService.call(email: 'service@example.com')
+
+      expect(result).to be_fail
+      expect(result.email).to eq('hi@example.com')
+    end
+
+    it '#fail then #success' do
+      TestFailService = Class.new(SeaFood::Service) do
+
+        def initialize(email:)
+          @email = email
+        end
+        
+        def call
+          fail(email: 'hi@example.com')
+          success(email: @email)
+        end
+      end
+
+      result = TestFailService.call(email: 'service@example.com')
+
+      expect(result).to be_success
+      expect(result.email).to eq('service@example.com')
+    end
+
+    it '#fail! then #success!' do
+      TestFailService = Class.new(SeaFood::Service) do
+        def initialize(email:)
+          @email = email
+        end
+        
+        def call
+          fail!(email: 'hi@example.com')
+          success!(email: @email)
+        end
+      end
+
+      result = TestFailService.call(email: 'service@example.com')
+
+      expect(result).to be_fail
+      expect(result.email).to eq('hi@example.com')
     end
   end
 end

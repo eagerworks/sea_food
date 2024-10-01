@@ -21,7 +21,8 @@ module SeaFood
       # @param args [Hash] Arguments to pass to the service.
       # @return [ServiceResult] The result of the service call.
       def call(params = {})
-        service = new(params)
+        # debugger
+        service = new(**params)
         service.call
         service.result || ServiceResult.new
       rescue ServiceError => e
