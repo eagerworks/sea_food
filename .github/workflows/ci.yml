@@ -25,6 +25,8 @@ jobs:
             gemfile: '7_2.gemfile'
           - ruby-version: '3.0'
             gemfile: '5_2.gemfile'
+          - ruby-version: '3.0'
+            gemfile: '7_2.gemfile'
           - ruby-version: '3.1'
             gemfile: '5_2.gemfile'
           - ruby-version: '3.3'
@@ -41,11 +43,6 @@ jobs:
         with:
           ruby-version: ${{ matrix.ruby-version }}
           bundler-cache: true
-
-      - name: Install dependencies
-        run: |
-          gem install bundler
-          bundle install
 
       - name: Run tests
         run: |
