@@ -1,0 +1,52 @@
+name: Test Matrix
+
+on: 
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        gemfile: [5_2.gemfile, 6_1.gemfile, 7_0.gemfile, 7_1.gemfile, 7_2.gemfile]
+        ruby-version: [ '2.7', '3.0', '3.1', '3.3']
+        exclude:
+          - ruby-version: '2.7'
+            gemfile: '7_0.gemfile'
+          - ruby-version: '2.7'
+            gemfile: '7_1.gemfile'
+          - ruby-version: '2.7'
+            gemfile: '7_2.gemfile'
+          - ruby-version: '3.0'
+            gemfile: '5_2.gemfile'
+          - ruby-version: '3.1'
+            gemfile: '5_2.gemfile'
+          - ruby-version: '3.3'
+            gemfile: '5_2.gemfile'
+
+    env:
+      BUNDLE_GEMFILE: spec/gemfiles/${{ matrix.gemfile }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Set up Ruby ${{ matrix.ruby-version }}
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: ${{ matrix.ruby-version }}
+          bundler-cache: true
+
+      - name: Install dependencies
+        run: |
+          gem install bundler
+          bundle install
+
+      - name: Run tests
+        run: |
+          bundle exec rspec
