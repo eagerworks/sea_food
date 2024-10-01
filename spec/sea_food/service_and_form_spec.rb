@@ -83,7 +83,7 @@ RSpec.describe 'Services and form usages' do
       )
 
       expect(result).to be_fail
-      expect(result.address.errors.map(&:message)).to eq(['is too short (minimum is 5 characters)'])
+      expect(result.errors[:address][:line1]).to eq(['is too short (minimum is 5 characters)'])
     end
 
     it '.call - with failed execution' do
