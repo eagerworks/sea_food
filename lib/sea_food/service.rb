@@ -21,12 +21,18 @@ module SeaFood
       # @param args [Hash] Arguments to pass to the service.
       # @return [ServiceResult] The result of the service call.
       def call(params = {})
-        # debugger
         service = new(**params)
         service.call
         service.result || ServiceResult.new
       rescue ServiceError => e
-        service.result
+        service.result || e.try(:result)
+      end
+
+      def call!(params = {})
+        result = call(params)
+        return result || ServiceResult.new unless result.fail?
+
+        raise ServiceError, result
       end
     end
 
@@ -113,7 +119,13 @@ module SeaFood
       end
     end
 
-    class ServiceError < StandardError; end
+    class ServiceError < StandardError
+      attr_reader :result
+
+      def initialize(result)
+        @result = result
+      end
+    end
 
     private
 

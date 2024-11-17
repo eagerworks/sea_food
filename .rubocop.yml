@@ -42,7 +42,7 @@ Metrics/BlockLength:
     - 'sea_food.gemspec'
     - config/**/*
     - spec/**/*
-  ExcludedMethods:
+  AllowedMethods:
     - class_methods
 
 Metrics/BlockNesting:
@@ -97,9 +97,14 @@ Style/MissingRespondToMissing:
   Exclude:
     - 'lib/sea_food/service.rb'
 
-Style/MethodMissingSuper:
+Lint/MissingSuper:
   Exclude:
     - 'lib/sea_food/service.rb'
+    - spec/**/*
 
 Naming/PredicateName:
   Enabled: false
+
+Lint/ConstantDefinitionInBlock:
+  Exclude:
+    - 'spec/**/*'

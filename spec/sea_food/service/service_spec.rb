@@ -70,7 +70,7 @@ RSpec.describe 'Service usages' do
   # Test enforcing the interface of the service
   ######
 
-  context "when the configuration is set to enforce the interface" do
+  context 'when the configuration is set to enforce the interface' do
     before do
       SeaFood.configure do |config|
         config.enforce_interface = true
@@ -79,8 +79,7 @@ RSpec.describe 'Service usages' do
 
     it 'rasies an error when the #initialize method is not implemented' do
       TestService = Class.new(SeaFood::Service) do
-        def call
-        end
+        def call; end
       end
 
       expect { TestService.call }.to raise_error(
@@ -148,9 +147,9 @@ RSpec.describe 'Service usages' do
       expect(result.email).to be_nil
     end
 
-  ######
-  # Test the difference behavior of #success #fail #fail!
-  ######
+    ######
+    # Test the difference behavior of #success #fail #fail!
+    ######
 
     it 'call #success twice' do
       TestSuccessService = Class.new(SeaFood::Service) do
@@ -208,11 +207,10 @@ RSpec.describe 'Service usages' do
 
     it '#fail then #success' do
       TestFailService = Class.new(SeaFood::Service) do
-
         def initialize(email:)
           @email = email
         end
-        
+
         def call
           fail(email: 'hi@example.com')
           success(email: @email)
@@ -230,10 +228,10 @@ RSpec.describe 'Service usages' do
         def initialize(email:)
           @email = email
         end
-        
+
         def call
           fail!(email: 'hi@example.com')
-          success!(email: @email)
+          success(email: @email)
         end
       end
 
@@ -241,6 +239,105 @@ RSpec.describe 'Service usages' do
 
       expect(result).to be_fail
       expect(result.email).to eq('hi@example.com')
+    end
+
+    context 'testing nested services with call' do
+      it 'it fails on the first service but not on the second one' do
+        TestInnerFailService = Class.new(SeaFood::Service) do
+          def initialize(email:)
+            @email = email
+          end
+
+          def call
+            fail!(email: @email)
+          end
+        end
+
+        TestParentFailService = Class.new(SeaFood::Service) do
+          def initialize(email:)
+            @email = email
+          end
+
+          def call
+            TestInnerFailService.call(email: 'inner@service.com')
+            success(email: @email)
+          end
+        end
+
+        result = TestParentFailService.call(email: 'outer@service.com')
+
+        expect(result).to be_success
+        expect(result.email).to eq('outer@service.com')
+      end
+    end
+
+    context 'testing nested services with call!' do
+      it 'it fails on the first service so it fails the second one' do
+        TestInnerFailService = Class.new(SeaFood::Service) do
+          def initialize(email:)
+            @email = email
+          end
+
+          def call
+            fail!(email: @email)
+          end
+        end
+
+        TestParentFailService = Class.new(SeaFood::Service) do
+          def initialize(email:)
+            @email = email
+          end
+
+          def call
+            TestInnerFailService.call!(email: 'inner@service.com')
+            success(email: @email)
+          end
+        end
+
+        result = TestParentFailService.call(email: 'outer@service.com')
+        expect(result).to be_fail
+        expect(result.email).to eq('inner@service.com')
+      end
+    end
+
+    context 'testing three levels nested services with call!' do
+      it 'it fails on the third level service but does not cascade' do
+        TestThirdFailService = Class.new(SeaFood::Service) do
+          def initialize(email:)
+            @email = email
+          end
+
+          def call
+            fail!(email: @email)
+          end
+        end
+
+        TestSecondFailService = Class.new(SeaFood::Service) do
+          def initialize(email:)
+            @email = email
+          end
+
+          def call
+            TestInnerFailService.call!(email: 'second@service.com')
+            success(email: @email)
+          end
+        end
+
+        TestFirstService = Class.new(SeaFood::Service) do
+          def initialize(email:)
+            @email = email
+          end
+
+          def call
+            TestInnerFailService.call(email: 'a')
+            success(email: @email)
+          end
+        end
+
+        result = TestFirstService.call(email: 'first@service.com')
+        expect(result).to be_success
+        expect(result.email).to eq('first@service.com')
+      end
     end
   end
 end
