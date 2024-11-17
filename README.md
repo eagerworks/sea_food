@@ -53,6 +53,195 @@ end
 ```
 It will raise an `ArgumentError`.
 
+
+### Handling Success and Failure
+#### Using success and fail
+`success(data):` Marks the service result as successful and optionally provides data.
+`fail(data):` Marks the service result as a failure but continues executing the call method.
+`fail!(data):` Marks the service result as a failure and immediately exits the call method.
+#### Example: Using fail followed by success
+```ruby
+  class TestFailService < SeaFood::Service
+    def initialize(email:)
+      @email = email
+    end
+
+    def call
+      fail(email: 'hi@example.com')
+      success(email: @email)
+    end
+  end
+
+  result = TestFailService.call(email: 'service@example.com')
+
+  puts result.success? # => true
+  puts result.email    # => 'service@example.com'
+```
+In this example:
+
+The fail method sets the result to failure but allows the method to continue.
+The subsequent success call overrides the failure, resulting in a successful outcome.
+
+#### Example: Using fail! to Exit Early
+```ruby
+class TestFailBangService < SeaFood::Service
+  def initialize(email:)
+    @email = email
+  end
+
+  def call
+    fail!(email: 'hi@example.com')
+    success(email: @email) # This line is not executed
+  end
+end
+
+result = TestFailBangService.call(email: 'service@example.com')
+
+puts result.success? # => false
+puts result.email    # => 'hi@example.com'
+```
+
+The `fail!` method immediately exits the call method.
+The service result is a failure, and subsequent code in call is not executed.
+Nested Services
+You can call other services within a service. The behavior depends on whether you use `call` or `call!`.
+#### Summary of call vs. call!
+`call`: Executes the service and returns the result. Does not raise an exception if the service fails.
+`call!`: Executes the service and raises an exception if the service fails. Useful for propagating failures in nested services.
+
+#### Using call (Non-Bang Method)
+Failures in nested services do not automatically propagate to the parent service.
+
+
+```ruby
+  class InnerService < SeaFood::Service
+    def initialize(email:)
+      @email = email
+    end
+
+    def call
+      fail!(email: @email)
+    end
+  end
+
+  class OuterService < SeaFood::Service
+    def initialize(email:)
+      @email = email
+    end
+
+    def call
+      InnerService.call(email: 'inner@example.com')
+      success(email: @email)
+    end
+  end
+
+  result = OuterService.call(email: 'outer@example.com')
+
+  puts result.success? # => true
+  puts result.email    # => 'outer@example.com'
+```
+*Explanation:*
+
+`InnerService` fails using `fail!`.
+`OuterService` calls `InnerService` using `call`.
+Since `call` does not raise an exception on failure, `OuterService` continues and succeeds.
+#### Using `call!` (Bang Method)
+Failures in nested services propagate to the parent service when using `call!`.
+
+```ruby
+  class InnerService < SeaFood::Service
+    def initialize(email:)
+      @email = email
+    end
+
+    def call
+      fail!(email: @email)
+    end
+  end
+
+  class OuterService < SeaFood::Service
+    def initialize(email:)
+      @email = email
+    end
+
+    def call
+      InnerService.call!(email: 'inner@example.com')
+      success(email: @email) # This line is not executed
+    end
+  end
+
+  result = OuterService.call(email: 'outer@example.com')
+
+  puts result.success? # => false
+  puts result.email    # => 'inner@example.com'
+```
+*Explanation:*
+
+`InnerService` fails using `fail!`.
+`OuterService` calls `InnerService` using call!.
+The failure from `InnerService` propagates, causing `OuterService` to fail.
+#### Handling Failures in Nested Services
+You can handle failures from nested services by checking their result.
+
+```ruby
+class InnerService < SeaFood::Service
+  def initialize(value:)
+    @value = value
+  end
+
+  def call
+    if @value < 0
+      fail!(error: 'Negative value')
+    else
+      success(value: @value)
+    end
+  end
+end
+
+class OuterService < SeaFood::Service
+  def initialize(value:)
+    @value = value
+  end
+
+  def call
+    result = InnerService.call(value: @value)
+
+    if result.fail?
+      fail!(error: result.error)
+    else
+      success(value: result.value * 2)
+    end
+  end
+end
+
+result = OuterService.call(value: -1)
+
+puts result.success?   # => false
+puts result.error      # => 'Negative value'
+```
+*Explanation:*
+
+`OuterService` checks the result of `InnerService`.
+If `InnerService` fails, `OuterService` handles it accordingly.
+
+#### Accessing Result Data
+The result object allows you to access data provided in success or fail calls using method syntax.
+
+```ruby
+class ExampleService < SeaFood::Service
+  def call
+    success(message: 'Operation successful', value: 42)
+  end
+end
+
+result = ExampleService.call
+
+puts result.success?   # => true
+puts result.message    # => 'Operation successful'
+puts result.value      # => 42
+```
+
+
 ## Development
 
 After checking out the repo, run `bin/setup` to install dependencies. Then, run `rake spec` to run the tests. You can also run `bin/console` for an interactive prompt that will allow you to experiment.
