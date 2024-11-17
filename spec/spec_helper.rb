@@ -7,11 +7,11 @@ require 'debug'
 ActiveRecord::Base.establish_connection adapter: 'sqlite3', database: ':memory:'
 
 require 'sea_food'
-load File.dirname(__FILE__) + '/support/schema.rb'
-require File.dirname(__FILE__) + '/support/form/user_form.rb'
-require File.dirname(__FILE__) + '/support/form/address_form.rb'
-require File.dirname(__FILE__) + '/support/user.rb'
-require File.dirname(__FILE__) + '/support/address.rb'
+load "#{File.dirname(__FILE__)}/support/schema.rb"
+require "#{File.dirname(__FILE__)}/support/form/user_form.rb"
+require "#{File.dirname(__FILE__)}/support/form/address_form.rb"
+require "#{File.dirname(__FILE__)}/support/user.rb"
+require "#{File.dirname(__FILE__)}/support/address.rb"
 
 RSpec.configure do |config|
   # Enable flags like --only-failures and --next-failure

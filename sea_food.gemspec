@@ -12,6 +12,7 @@ Gem::Specification.new do |spec|
   spec.summary       = 'A Ruby gem for seamlessly integrating form and service object patterns.'
   spec.homepage      = 'https://github.com/eagerworks/sea_food'
   spec.license       = 'MIT'
+  spec.required_ruby_version = Gem::Requirement.new('>= 2.7.0')
 
   # Prevent pushing this gem to RubyGems.org. To allow pushes either set the 'allowed_push_host'
   # to allow pushing to a single host or delete this section to allow pushing to any host.
@@ -43,6 +44,6 @@ Gem::Specification.new do |spec|
   spec.add_development_dependency 'debug'
   spec.add_development_dependency 'rake'
   spec.add_development_dependency 'rspec', '~> 3.0'
-  spec.add_development_dependency 'rubocop', '~> 0.80.0'
+  spec.add_development_dependency 'rubocop', '~> 1.0'
   spec.add_development_dependency 'sqlite3', '~> 1.5.0'
 end
